@@ -446,6 +446,8 @@ var _setup = require('./setup');
 var _parcelHelpers = require("@parcel/transformer-js/lib/esmodule-helpers.js");
 var _setupDefault = _parcelHelpers.interopDefault(_setup);
 const getRandomNum = (max = 0, min = 0) => Math.floor(Math.random() * (max + 1 - min)) + min;
+const initialRotate = 0.004;
+let rotateSpeed = initialRotate;
 class Agent extends _setupDefault.default {
   constructor() {
     super({
@@ -460,7 +462,9 @@ class Agent extends _setupDefault.default {
   BuildMesh() {
     this.geometry = new THREE.CylinderGeometry(0, 4, 8, 10);
     this.geometry.rotateX(THREE.Math.degToRad(90));
-    this.material = new THREE.MeshNormalMaterial();
+    this.material = new THREE.MeshPhongMaterial({
+      color: 0xffffff
+    });
     this.mesh = new THREE.Mesh(this.geometry, this.material);
   }
   Start() {
@@ -495,7 +499,6 @@ class Agent extends _setupDefault.default {
     head.multiplyScalar(10);
     head.add(this.mesh.position);
     this.mesh.lookAt(head);
-    super.Update(time);
   }
   ApplyForce(f) {
     this.acceleration.add(f.clone());
@@ -505,7 +508,7 @@ class Boid extends _setupDefault.default {
   constructor() {
     super();
     this.params = {
-      maxSpeed: 7,
+      maxSpeed: 4,
       seek: {
         maxForce: 0.04
       },
@@ -517,14 +520,14 @@ class Boid extends _setupDefault.default {
         effectiveRange: 70,
         maxForce: 0.2
       },
-      choesin: {
+      cohesion: {
         effectiveRange: 200
       }
     };
   }
   BuildMesh() {
     this.group = new THREE.Group();
-    this.count = 50;
+    this.count = 200;
     this.agents = [];
     for (let i = 0; i < this.count; i++) {
       const agent = new Agent();
@@ -537,13 +540,14 @@ class Boid extends _setupDefault.default {
   }
   Update() {
     this.agents.forEach(agent => {
+      agent.maxSpeed = this.maxSpeed;
       agent.ApplyForce(this.Align(agent));
       agent.ApplyForce(this.Separate(agent));
       agent.ApplyForce(this.Cohesion(agent));
       agent.ApplyForce(this.AvoidBoxContainer(agent, 300, 300, 300));
       agent.Update();
     });
-    super.Update();
+    this.group.rotation.y += rotateSpeed;
   }
   Align(currAgent) {
     const sumVec = new THREE.Vector3();
@@ -618,7 +622,7 @@ class Boid extends _setupDefault.default {
   Cohesion(currAgent) {
     const sumVec = new THREE.Vector3();
     let count = 0;
-    const effectiveRange = this.params.choesin.effectiveRange;
+    const effectiveRange = this.params.cohesion.effectiveRange;
     const steer = new THREE.Vector3();
     this.agents.forEach(otherAgent => {
       const dist = currAgent.mesh.position.distanceTo(otherAgent.mesh.position);
@@ -656,55 +660,63 @@ class Boid extends _setupDefault.default {
     return sumVec;
   }
 }
-new Boid();
-window.addEventListener('mousedown', () => {
-  document.getElementById('description').className = "dimmed";
-});
-window.addEventListener('mouseup', () => document.getElementById('description').className = "");
-
-},{"@parcel/transformer-js/lib/esmodule-helpers.js":"5gA8y","./setup":"3tMD4"}],"5gA8y":[function(require,module,exports) {
-"use strict";
-
-exports.interopDefault = function (a) {
-  return a && a.__esModule ? a : {
-    default: a
-  };
-};
-
-exports.defineInteropFlag = function (a) {
-  Object.defineProperty(a, '__esModule', {
-    value: true
-  });
-};
-
-exports.exportAll = function (source, dest) {
-  Object.keys(source).forEach(function (key) {
-    if (key === 'default' || key === '__esModule') {
-      return;
-    } // Skip duplicate re-exports when they have the same value.
-
-
-    if (key in dest && dest[key] === source[key]) {
-      return;
-    }
-
-    Object.defineProperty(dest, key, {
-      enumerable: true,
-      get: function () {
-        return source[key];
-      }
+class Arena extends _setupDefault.default {
+  constructor() {
+    super();
+  }
+  BuildMesh() {
+    this.size = 600;
+    this.geometry = new THREE.BoxGeometry(this.size, this.size, this.size);
+    this.geometry.rotateX(THREE.Math.degToRad(90));
+    this.material = new THREE.MeshNormalMaterial({
+      wireframe: true
     });
-  });
-  return dest;
-};
+    this.mesh = new THREE.Mesh(this.geometry, this.material);
+  }
+  Update() {
+    this.mesh.rotation.y += rotateSpeed;
+  }
+}
+const boid = new Boid();
+const arena = new Arena();
+// arena.mesh.add(new Boid())
+window.addEventListener('pointerdown', () => {
+  if (document.getElementById('description').className === "") document.getElementById('description').className = "dimmed";
+});
+window.addEventListener('pointerup', () => {
+  if (document.getElementById('description').className === "dimmed") document.getElementById('description').className = "";
+});
+document.getElementById('max-velocity').addEventListener('input', e => boid.params.maxSpeed = e.target.value);
+document.getElementById('cohesion').addEventListener('input', e => boid.params.cohesion.effectiveRange = e.target.value);
+document.getElementById('align').addEventListener('input', e => boid.params.align.effectiveRange = e.target.value);
+document.getElementById('separate').addEventListener('input', e => boid.params.separate.effectiveRange = e.target.value);
+let isHidden = false;
+document.getElementById('visibility-btn').addEventListener('click', e => {
+  if (!isHidden) {
+    isHidden = true;
+    e.target.innerText = "Show Description";
+    e.target.className = "outlined";
+    document.getElementById('description').className = "hidden";
+  } else {
+    isHidden = false;
+    e.target.innerText = "Hide Description";
+    e.target.className = "";
+    document.getElementById('description').className = "";
+  }
+});
+document.getElementById('rotate-btn').addEventListener('click', e => {
+  if (rotateSpeed === initialRotate) {
+    e.target.innerText = "Reduced Motion";
+    e.target.className = "outlined";
+    rotateSpeed = 0;
+  } else {
+    e.target.innerText = "Reduce Motion";
+    e.target.className = "";
+    rotateSpeed = initialRotate;
+  }
+});
 
-exports.export = function (dest, destName, get) {
-  Object.defineProperty(dest, destName, {
-    enumerable: true,
-    get: get
-  });
-};
-},{}],"3tMD4":[function(require,module,exports) {
+},{"./setup":"3tMD4","@parcel/transformer-js/lib/esmodule-helpers.js":"5gA8y"}],"3tMD4":[function(require,module,exports) {
 var _parcelHelpers = require("@parcel/transformer-js/lib/esmodule-helpers.js");
 _parcelHelpers.defineInteropFlag(exports);
 _parcelHelpers.export(exports, "scene", function () {
@@ -763,10 +775,16 @@ class Scene {
   }
   /** Include any Scene setup logic here*/
   SetupScene() {
-    const ambientLight = new _three.AmbientLight(0x041f60);
-    ambientLight.intensity = 0.3;
+    const ambientLight = new _three.AmbientLight(0xffffff);
+    // ambientLight.intensity = 1;
     this.scene.add(ambientLight);
-    this.scene.fog = new _three.Fog(0x041f60, 3000, 20000);
+    const color = 0xFFFFFF;
+    const intensity = 1;
+    const light = new _three.DirectionalLight(color, intensity);
+    light.position.set(0, 10, 0);
+    light.target.position.set(-5, 0, 0);
+    this.scene.add(light);
+    this.scene.fog = new _three.Fog(0xa0a0a0, 10, 50);
   }
   /**
   * Adds a new mesh to the scene.
@@ -792,7 +810,7 @@ class Scene {
 }
 exports.default = Scene;
 
-},{"three":"17Pzd","@parcel/transformer-js/lib/esmodule-helpers.js":"5gA8y","./CameraController":"5SKJw"}],"17Pzd":[function(require,module,exports) {
+},{"three":"17Pzd","./CameraController":"5SKJw","@parcel/transformer-js/lib/esmodule-helpers.js":"5gA8y"}],"17Pzd":[function(require,module,exports) {
 var define;
 /**
 * @license
@@ -30652,7 +30670,7 @@ class CameraController {
     this.controls.autoRotate = false;
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.39;
-    this.camera.position.z = 200;
+    this.camera.position.z = 700;
     this.controls.update();
   }
   /** Handles recalibrating the camera when
@@ -31696,6 +31714,48 @@ module.exports = function( THREE ) {
 	return OrbitControls;
 };
 
+},{}],"5gA8y":[function(require,module,exports) {
+"use strict";
+
+exports.interopDefault = function (a) {
+  return a && a.__esModule ? a : {
+    default: a
+  };
+};
+
+exports.defineInteropFlag = function (a) {
+  Object.defineProperty(a, '__esModule', {
+    value: true
+  });
+};
+
+exports.exportAll = function (source, dest) {
+  Object.keys(source).forEach(function (key) {
+    if (key === 'default' || key === '__esModule') {
+      return;
+    } // Skip duplicate re-exports when they have the same value.
+
+
+    if (key in dest && dest[key] === source[key]) {
+      return;
+    }
+
+    Object.defineProperty(dest, key, {
+      enumerable: true,
+      get: function () {
+        return source[key];
+      }
+    });
+  });
+  return dest;
+};
+
+exports.export = function (dest, destName, get) {
+  Object.defineProperty(dest, destName, {
+    enumerable: true,
+    get: get
+  });
+};
 },{}],"55aGJ":[function(require,module,exports) {
 var v1 = require('./v1');
 var v4 = require('./v4');

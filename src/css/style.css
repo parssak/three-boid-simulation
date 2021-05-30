@@ -7,28 +7,26 @@ h1 {
 h2 {
   font-size: 1.5rem;
   font-weight: 400;
-  color: rgb(209, 209, 209);
+  color: #d1d1d1;
+  margin-bottom: 5rem;
 }
 
 p,ul {
   font-size: 1rem;
-  max-width: 40ch;
+  max-width: 50ch;
   line-height: 1.7;
-}
-p {
-  margin-top: 5rem;
 }
 
 ul {
   margin-top: 1rem;
   line-height: 1.4;
 }
+
 li {
   margin-bottom: 0.8rem;
-}
-li {
   list-style: none;
 }
+
 li > *:not(:first-child) {
   font-weight: 300;
 }
@@ -36,6 +34,49 @@ li > *:not(:first-child) {
 #description {
   transition: all 0.5s ease;
 }
+
+#controls > * {
+  display: flex;
+  align-items: center;
+  max-width: 30ch;
+  margin-top: 0.4rem;
+  justify-content: space-between;
+}
+
+@media (max-width: 700px) {
+  #controls > * {
+    max-width: calc(90vw);
+  }
+}
+
+label {
+  margin-right: 0.5rem;
+}
+
 .dimmed {
-  opacity: 0.5;
+  opacity: 0.2;
+}
+.hidden {
+  opacity: 0;
+}
+
+.bottom-half {
+  margin-top: auto;
+}
+
+button {
+  display: inline-block;
+  all: unset;
+  cursor:pointer;
+  padding: 0.5rem 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  background: #2456fc;
+  border-radius: 0.3rem;
+  border:  2px solid transparent;
+}
+
+button.outlined {
+  background: rgba(0,0,0,0.1);
+  border: 2px solid #2456fc;
 }

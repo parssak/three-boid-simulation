@@ -20,6 +20,17 @@ body {
   pointer-events: none;
   padding: 5vw;
   top: 0;
-  width: 100vw;
-  height: 100vh;
+  height: calc(100vh - 10vw);
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 700px) {
+  #content {
+    width: 100vw;
+  }
+}
+
+#content > *:not(#description) {
+  pointer-events: initial;
 }

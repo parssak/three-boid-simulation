@@ -20,10 +20,18 @@ export default class Scene {
 
   /** Include any Scene setup logic here */
   SetupScene() {
-    const ambientLight = new THREE.AmbientLight(0x041f60);
-    ambientLight.intensity = 0.3;
+    const ambientLight = new THREE.AmbientLight(0xffffff);
+    // ambientLight.intensity = 1;
     this.scene.add(ambientLight);
-    this.scene.fog = new THREE.Fog(0x041f60, 3000, 20000);
+    
+    const color = 0xFFFFFF;
+    const intensity = 1;
+    const light = new THREE.DirectionalLight(color, intensity);
+    light.position.set(0, 10, 0);
+    light.target.position.set(-5, 0, 0);
+    this.scene.add(light);
+
+    this.scene.fog = new THREE.Fog(0xa0a0a0, 10, 50);
   }
 
   /**

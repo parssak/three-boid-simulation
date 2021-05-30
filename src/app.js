@@ -1,10 +1,11 @@
 import Entity from './setup'
 
 const getRandomNum = (max = 0, min = 0) => Math.floor(Math.random() * (max + 1 - min)) + min;
-
+const initialRotate = 0.004;
+let rotateSpeed = initialRotate;
 class Agent extends Entity {
     constructor() {
-        super({inGroup: true});
+        super({ inGroup: true });
         this.velocity = new THREE.Vector3(getRandomNum(100, -100) * 0.1, getRandomNum(100, -100) * 0.1, getRandomNum(100, -100) * 0.1);
         this.acceleration = new THREE.Vector3();
         this.wonderTheta = 0;
@@ -15,7 +16,7 @@ class Agent extends Entity {
     BuildMesh() {
         this.geometry = new THREE.CylinderGeometry(0, 4, 8, 10);
         this.geometry.rotateX(THREE.Math.degToRad(90))
-        this.material = new THREE.MeshNormalMaterial();
+        this.material = new THREE.MeshPhongMaterial({ color: 0xffffff });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
     }
 
@@ -58,8 +59,6 @@ class Agent extends Entity {
         head.multiplyScalar(10);
         head.add(this.mesh.position);
         this.mesh.lookAt(head);
-
-        super.Update(time)
     }
 
     ApplyForce(f) {
@@ -68,12 +67,11 @@ class Agent extends Entity {
 
 }
 
-
 class Boid extends Entity {
     constructor() {
         super();
         this.params = {
-            maxSpeed: 7,
+            maxSpeed: 4,
             seek: {
                 maxForce: 0.04
             },
@@ -93,7 +91,7 @@ class Boid extends Entity {
 
     BuildMesh() {
         this.group = new THREE.Group();
-        this.count = 50;
+        this.count = 200;
         this.agents = [];
 
         for (let i = 0; i < this.count; i++) {
@@ -109,13 +107,14 @@ class Boid extends Entity {
 
     Update() {
         this.agents.forEach(agent => {
+            agent.maxSpeed = this.maxSpeed
             agent.ApplyForce(this.Align(agent));
             agent.ApplyForce(this.Separate(agent));
             agent.ApplyForce(this.Cohesion(agent));
             agent.ApplyForce(this.AvoidBoxContainer(agent, 300, 300, 300));
             agent.Update();
         });
-        super.Update();
+        this.group.rotation.y += rotateSpeed;
     }
 
     Align(currAgent) {
@@ -247,12 +246,62 @@ class Boid extends Entity {
 
 }
 
-new Boid();
+class Arena extends Entity {
+    constructor() {
+        super();
+    }
 
-window.addEventListener('mousedown', () => {
-    document.getElementById('description').className = "dimmed"
+    BuildMesh() {
+        this.size = 600;
+        this.geometry = new THREE.BoxGeometry(this.size, this.size, this.size);
+        this.geometry.rotateX(THREE.Math.degToRad(90))
+        this.material = new THREE.MeshNormalMaterial({ wireframe: true });
+        this.mesh = new THREE.Mesh(this.geometry, this.material);
+    }
+
+    Update() {
+        this.mesh.rotation.y += rotateSpeed;
+    }
+}
+
+const boid = new Boid();
+const arena = new Arena();
+// arena.mesh.add(new Boid())
+window.addEventListener('pointerdown', () => {if (document.getElementById('description').className === "") document.getElementById('description').className = "dimmed" })
+window.addEventListener('pointerup', () => { if (document.getElementById('description').className === "dimmed") document.getElementById('description').className = "" })
+
+
+document.getElementById('max-velocity').addEventListener('input', e => boid.params.maxSpeed = (e.target.value))
+document.getElementById('cohesion').addEventListener('input', e => boid.params.cohesion.effectiveRange = (e.target.value))
+document.getElementById('align').addEventListener('input', e => boid.params.align.effectiveRange = (e.target.value))
+document.getElementById('separate').addEventListener('input', e => boid.params.separate.effectiveRange = (e.target.value))
+
+let isHidden = false;
+document.getElementById('visibility-btn').addEventListener('click', e => {
+    if (!isHidden) {
+        isHidden = true;
+        e.target.innerText = "Show Description"
+        e.target.className = "outlined"
+        document.getElementById('description').className = "hidden";
+    } else {
+        isHidden = false;
+        e.target.innerText = "Hide Description"
+        e.target.className = ""
+        document.getElementById('description').className = "";
+    }
 })
-window.addEventListener('mouseup', () => document.getElementById('description').className = "")
+
+document.getElementById('rotate-btn').addEventListener('click', e => {
+    if (rotateSpeed === initialRotate) {
+        e.target.innerText = "Reduced Motion"
+        e.target.className = "outlined"
+        rotateSpeed = 0;
+    } else {
+        e.target.innerText = "Reduce Motion"
+        e.target.className = ""
+        rotateSpeed = initialRotate;
+    }
+})
 
 
 
