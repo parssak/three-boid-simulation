@@ -12,6 +12,13 @@ class Agent extends Entity {
         this.boost = new THREE.Vector3();
     }
 
+    BuildMesh() {
+        this.geometry = new THREE.CylinderGeometry(0, 4, 8, 10);
+        this.geometry.rotateX(THREE.Math.degToRad(90))
+        this.material = new THREE.MeshNormalMaterial();
+        this.mesh = new THREE.Mesh(this.geometry, this.material);
+    }
+
     Start() {
         super.Start();
         const radius = getRandomNum(0, 100);
@@ -55,14 +62,6 @@ class Agent extends Entity {
         super.Update(time)
     }
 
-    BuildMesh() {
-        this.geometry = new THREE.CylinderGeometry(0, 4, 8, 10);
-        this.geometry.rotateX(THREE.Math.degToRad(90))
-        this.material = new THREE.MeshNormalMaterial();
-        this.mesh = new THREE.Mesh(this.geometry, this.material);
-    }
-
-
     ApplyForce(f) {
         this.acceleration.add(f.clone());
     }
@@ -71,7 +70,7 @@ class Agent extends Entity {
 
 
 class Boid extends Entity {
-    constructor(count) {
+    constructor() {
         super();
         this.params = {
             maxSpeed: 7,
@@ -86,14 +85,10 @@ class Boid extends Entity {
                 effectiveRange: 70,
                 maxForce: 0.2
             },
-            choesin: {
+            cohesion: {
                 effectiveRange: 200
             }
         };
-    }
-
-    Start() {
-        super.Start();
     }
 
     BuildMesh() {
@@ -106,6 +101,10 @@ class Boid extends Entity {
             this.group.add(agent.mesh);
             this.agents.push(agent);
         }
+    }
+
+    Start() {
+        super.Start();
     }
 
     Update() {
@@ -201,7 +200,7 @@ class Boid extends Entity {
     Cohesion(currAgent) {
         const sumVec = new THREE.Vector3();
         let count = 0;
-        const effectiveRange = this.params.choesin.effectiveRange;
+        const effectiveRange = this.params.cohesion.effectiveRange;
         const steer = new THREE.Vector3();
 
         this.agents.forEach((otherAgent) => {

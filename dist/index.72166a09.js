@@ -457,6 +457,12 @@ class Agent extends _setupDefault.default {
     this.maxSpeed = 1;
     this.boost = new THREE.Vector3();
   }
+  BuildMesh() {
+    this.geometry = new THREE.CylinderGeometry(0, 4, 8, 10);
+    this.geometry.rotateX(THREE.Math.degToRad(90));
+    this.material = new THREE.MeshNormalMaterial();
+    this.mesh = new THREE.Mesh(this.geometry, this.material);
+  }
   Start() {
     super.Start();
     const radius = getRandomNum(0, 100);
@@ -491,18 +497,12 @@ class Agent extends _setupDefault.default {
     this.mesh.lookAt(head);
     super.Update(time);
   }
-  BuildMesh() {
-    this.geometry = new THREE.CylinderGeometry(0, 4, 8, 10);
-    this.geometry.rotateX(THREE.Math.degToRad(90));
-    this.material = new THREE.MeshNormalMaterial();
-    this.mesh = new THREE.Mesh(this.geometry, this.material);
-  }
   ApplyForce(f) {
     this.acceleration.add(f.clone());
   }
 }
 class Boid extends _setupDefault.default {
-  constructor(count) {
+  constructor() {
     super();
     this.params = {
       maxSpeed: 7,
@@ -522,9 +522,6 @@ class Boid extends _setupDefault.default {
       }
     };
   }
-  Start() {
-    super.Start();
-  }
   BuildMesh() {
     this.group = new THREE.Group();
     this.count = 50;
@@ -534,6 +531,9 @@ class Boid extends _setupDefault.default {
       this.group.add(agent.mesh);
       this.agents.push(agent);
     }
+  }
+  Start() {
+    super.Start();
   }
   Update() {
     this.agents.forEach(agent => {
