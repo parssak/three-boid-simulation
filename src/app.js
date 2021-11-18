@@ -1,4 +1,5 @@
 import Entity from './setup'
+import * as THREE from 'three';
 
 const getRandomNum = (max = 0, min = 0) => Math.floor(Math.random() * (max + 1 - min)) + min;
 const initialRotate = 0.004;
@@ -11,12 +12,13 @@ class Agent extends Entity {
         this.wonderTheta = 0;
         this.maxSpeed = 1;
         this.boost = new THREE.Vector3();
+        console.debug('made agent')
     }
 
     BuildMesh() {
         this.geometry = new THREE.CylinderGeometry(0, 4, 8, 10);
         this.geometry.rotateX(THREE.Math.degToRad(90))
-        this.material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+        this.material = new THREE.MeshNormalMaterial();
         this.mesh = new THREE.Mesh(this.geometry, this.material);
     }
 
@@ -91,7 +93,7 @@ class Boid extends Entity {
 
     BuildMesh() {
         this.group = new THREE.Group();
-        this.count = 200;
+        this.count = 50;
         this.agents = [];
 
         for (let i = 0; i < this.count; i++) {
@@ -111,7 +113,7 @@ class Boid extends Entity {
             agent.ApplyForce(this.Align(agent));
             agent.ApplyForce(this.Separate(agent));
             agent.ApplyForce(this.Cohesion(agent));
-            agent.ApplyForce(this.AvoidBoxContainer(agent, 300, 300, 300));
+            agent.ApplyForce(this.AvoidBoxContainer(agent, 500, 500, 500));
             agent.Update();
         });
         this.group.rotation.y += rotateSpeed;
@@ -252,7 +254,7 @@ class Arena extends Entity {
     }
 
     BuildMesh() {
-        this.size = 600;
+        this.size = 1000;
         this.geometry = new THREE.BoxGeometry(this.size, this.size, this.size);
         this.geometry.rotateX(THREE.Math.degToRad(90))
         this.material = new THREE.MeshNormalMaterial({ wireframe: true });
@@ -263,18 +265,20 @@ class Arena extends Entity {
         this.mesh.rotation.y += rotateSpeed;
     }
 }
-
-const boid = new Boid();
-const arena = new Arena();
+const boids = []
+for (let i = 0; i < 5; i++) {
+    boids.push(new Boid());
+}
+new Arena();
 // arena.mesh.add(new Boid())
 window.addEventListener('pointerdown', () => {if (document.getElementById('description').className === "") document.getElementById('description').className = "dimmed" })
 window.addEventListener('pointerup', () => { if (document.getElementById('description').className === "dimmed") document.getElementById('description').className = "" })
 
 
-document.getElementById('max-velocity').addEventListener('input', e => boid.params.maxSpeed = (e.target.value))
-document.getElementById('cohesion').addEventListener('input', e => boid.params.cohesion.effectiveRange = (e.target.value))
-document.getElementById('align').addEventListener('input', e => boid.params.align.effectiveRange = (e.target.value))
-document.getElementById('separate').addEventListener('input', e => boid.params.separate.effectiveRange = (e.target.value))
+document.getElementById('max-velocity').addEventListener('input', e => boids.forEach(boid => boid.params.maxSpeed = (e.target.value)))
+document.getElementById('cohesion').addEventListener('input', e => boids.forEach(boid => boid.params.cohesion.effectiveRange = (e.target.value)))
+document.getElementById('align').addEventListener('input', e => boids.forEach(boid => boid.params.align.effectiveRange = (e.target.value)))
+document.getElementById('separate').addEventListener('input', e => boids.forEach(boid => boid.params.separate.effectiveRange = (e.target.value)))
 
 let isHidden = false;
 document.getElementById('visibility-btn').addEventListener('click', e => {

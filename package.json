@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "parcel src/index.html",
     "prod": "parcel build src/index.html --public-url='./'.",
-    "publish": "git add build -f && git commit -m 'Updated build' && git subtree push --prefix dist origin gh-pages"
+    "publish": "yarn run prod && git add build -f && git commit -m 'Updated build' && git subtree push --prefix dist origin gh-pages"
   },
   "repository": {
     "type": "git",
@@ -21,5 +21,9 @@
   "homepage": "https://github.com/parssak/three-setup#readme",
   "devDependencies": {
     "parcel": "^2.0.0-beta.2"
+  },
+  "dependencies": {
+    "three": "^0.134.0",
+    "three-orbit-controls": "^82.1.0"
   }
 }

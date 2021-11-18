@@ -27,6 +27,7 @@ export default class CameraController {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.container = document.getElementById('container')
     this.container.appendChild(this.renderer.domElement)
+    console.debug('Renderer added to container.')
   }
 
   /** Initializes Camera */
