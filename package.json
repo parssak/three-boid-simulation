@@ -5,7 +5,8 @@
   "main": "index.html",
   "scripts": {
     "dev": "parcel src/index.html",
-    "prod": "parcel build src/index.html --public-url='./'."
+    "prod": "parcel build src/index.html --public-url='./'.",
+    "publish": "git add build -f && git commit -m 'Updated build' && git subtree push --prefix dist origin gh-pages"
   },
   "repository": {
     "type": "git",
